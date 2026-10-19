@@ -1,0 +1,5 @@
+const CACHE='gabinete-julio-v16';
+const CORE=['./index.html','./gabinete_professor_julio.html','./manifest.webmanifest','./icon.svg'];
+self.addEventListener('install',event=>event.waitUntil((async()=>{const cache=await caches.open(CACHE);for(const url of CORE){try{await cache.add(url)}catch(error){console.warn('Cache opcional não disponível:',url)}}await self.skipWaiting()})()));
+self.addEventListener('activate',event=>event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(key=>key.startsWith('gabinete-julio-v')&&key!==CACHE).map(key=>caches.delete(key)));await self.clients.claim()})()));
+self.addEventListener('fetch',event=>{const req=event.request;if(req.method!=='GET')return;const url=new URL(req.url);if(url.origin!==self.location.origin)return;event.respondWith((async()=>{const cache=await caches.open(CACHE);try{const response=await fetch(req);if(response.ok)cache.put(req,response.clone()).catch(()=>{});return response}catch(error){return await cache.match(req)||await cache.match('./index.html')||Response.error()}})())});
